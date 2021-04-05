@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -37,8 +35,8 @@ public:
 	int32 GridSize=3;
 	
 	int32 NumberOfMines=3;
-	TArray<FString> real_table;
-	TArray<FString> vis_table;
+	TArray<FString> Actual_Table;
+	TArray<FString> Visible_Table;
 	
 	
 public:
@@ -50,6 +48,8 @@ public:
 
 	/** This function will be bound to Command (by default it will bring up plugin window) */
 	void PluginButtonClicked();
+
+
 	void InitialzeGrid();
 	void ResetValues();
 	void placeMines();

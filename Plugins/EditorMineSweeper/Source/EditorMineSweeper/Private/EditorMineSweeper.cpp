@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "EditorMineSweeper.h"
 
 
@@ -11,7 +9,7 @@ static const FName EditorMineSweeperTabName( "EditorMineSweeper" );
 
 
 #pragma region CUSTOM_EXPERIMENTAL_MACROS
-
+/*Reccursive Macro Calling Experiemnt*/
 #define STRFY(A) #A
 #define MakeGrid(N) 
 
@@ -26,15 +24,15 @@ static const FName EditorMineSweeperTabName( "EditorMineSweeper" );
 
 #define Grid(n)													\
 	SNew( SVerticalBox )										\
-	LOOP_N_TIMES(n,+SVerticalBox::Slot().FillHeight( 1 )[SNew( SHorizontalBox )	LOOP_N_TIMES(n,RowButton(0))])	\
+	LOOP_N_TIMES(n,+SVerticalBox::Slot().FillHeight( 1 )[SNew( SHorizontalBox )	LOOP_N_TIMES(n,MineSweeperButton_Macro(0))])	\
 
-//LOOP_N_TIMES(INNER_LOOP_COUNT,RowButton(0))
+//LOOP_N_TIMES(INNER_LOOP_COUNT,MineSweeperButton_Macro(0))
 #pragma endregion CUSTOM_EXPERIMENTAL_MACROS
 
 
 #pragma region CUSTOM_MACROS
 
-#define RowButton(i) \
+#define MineSweeperButton_Macro(i) \
 	+SHorizontalBox::Slot()	.FillWidth( 1 ) \
 	[\
 			SNew(SBox)\
@@ -45,7 +43,7 @@ static const FName EditorMineSweeperTabName( "EditorMineSweeper" );
 				.OnClicked( FOnClicked::CreateRaw( this,&FEditorMineSweeperModule::OnMineFieldButtonClicked,i )).VAlign( VAlign_Center )	\
 				.IsEnabled_Lambda([this]()->bool {return (i%9)<GridSize && (i-((9-GridSize) * FMath::Floor(i/9) ) <GridSize*GridSize);})		\
 				.ButtonColorAndOpacity_Lambda([this]()-> FLinearColor {	\
-					if(  vis_table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("-")){ return (FLinearColor(1.f, 1.f, 1.f, 1.f));}else if(  vis_table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals(" ")){ return (FLinearColor(1.f, 1.f, 1.f, 0.5f));}else	if(  vis_table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("*")){ return (FLinearColor(1.f, 0.f, 0.f, 0.35f));} else { return (FLinearColor(1.f, 1.f, 1.f, 1.f));}	})		\
+					if(  Visible_Table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("-")){ return (FLinearColor(1.f, 1.f, 1.f, 1.f));}else if(  Visible_Table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals(" ")){ return (FLinearColor(1.f, 1.f, 1.f, 0.5f));}else	if(  Visible_Table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("*")){ return (FLinearColor(1.f, 0.f, 0.f, 0.35f));} else { return (FLinearColor(1.f, 1.f, 1.f, 1.f));}	})		\
 					[\
 					SNew( SBorder ).Content()\
 						[\
@@ -53,7 +51,7 @@ static const FName EditorMineSweeperTabName( "EditorMineSweeper" );
 							/*.ColorAndOpacity( FLinearColor(0.0f, 1.0f, 0.0f))*/	\
 							.Text_Lambda([this]()->FText { return  GetTableValueAt(i-((9-GridSize) * FMath::Floor(i/9) ))	\
 							/*FText::AsNumber(i)*/ /*FText::AsNumber(i-((9-GridSize) * FMath::Floor(i/9) ))*/;})\
-							.ColorAndOpacity_Lambda([this]()-> FSlateColor { if(  vis_table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("6")){return FSlateColor(FLinearColor(1.0f, 0.f, 0.f, 1.f));}else if(  vis_table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("5")){return FSlateColor(FLinearColor(0.9f, 0.f, 0.f, 1.f));}if(  vis_table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("4")){return FSlateColor(FLinearColor(0.8f, 0.f, 0.f, 1.f));} else if(  vis_table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("3")){return FSlateColor(FLinearColor(0.7f, 0.f, 0.f, 1.f));} else if(  vis_table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("2")){return FSlateColor(FLinearColor(0.6f, 0.f, 0.f, 1.f));} else {return FSlateColor(FLinearColor(0.f, 0.f, 0.f, 1.f));}}  )	\
+							.ColorAndOpacity_Lambda([this]()-> FSlateColor { if(  Visible_Table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("6")){return FSlateColor(FLinearColor(1.0f, 0.f, 0.f, 1.f));}else if(  Visible_Table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("5")){return FSlateColor(FLinearColor(0.9f, 0.f, 0.f, 1.f));}if(  Visible_Table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("4")){return FSlateColor(FLinearColor(0.8f, 0.f, 0.f, 1.f));} else if(  Visible_Table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("3")){return FSlateColor(FLinearColor(0.7f, 0.f, 0.f, 1.f));} else if(  Visible_Table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("2")){return FSlateColor(FLinearColor(0.6f, 0.f, 0.f, 1.f));} else if(  Visible_Table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals("*")){return FSlateColor(FLinearColor(1.0f, 0.f, 0.f, 0.35f));}else if(  Visible_Table[i-((9-GridSize) * FMath::Floor(i/9) )].Equals(" ")){return FSlateColor(FLinearColor(1.0f,1.f, 1.f, 0.5f));} else {return FSlateColor(FLinearColor(0.f, 0.f, 0.f, 1.f));}}  )	\
 							.Font( LargeLayoutFont )	\
 						]\
 					]\
@@ -164,28 +162,33 @@ TSharedRef<SDockTab> FEditorMineSweeperModule::MineSeeperUI()
 						SNew( STextBlock )
 						.ShadowOffset( HeadingShadowOffset )
 						.Font( XLargeLayoutFont )
-						.Text( LOCTEXT( "Editor-Minecraft", "Editor Minecraft" ) )
+						.Text( LOCTEXT( "Editor-Minesweeper", "Editor Minesweeper" ) )
 						.ColorAndOpacity( FLinearColor(0.5f, 0.5f, 0.5f))
 						/*.ColorAndOpacity_Lambda([this]()-> FSlateColor { return FSlateColor(FLinearColor(1.f, 1.f, 1.f, 1.f));})*/		
 					]
 				+SScrollBox::Slot().Padding( 10, 5 )
 					[
-						SNew( SHorizontalBox )
-						+SHorizontalBox::Slot()
-					.AutoWidth()
-						[
-							SAssignNew( GenerateGridButtonPtr, SButton )
-							.Text( LOCTEXT( "Generate-New-Grid", "Generate New Grid." ) )
-							.OnClicked( FOnClicked::CreateRaw( this, &FEditorMineSweeperModule::OnGenerateGridClicked ) )
-							//.ButtonColorAndOpacity(this, &SPrimaryAssetIdGraphPin::OnGetWidgetBackground)
-							.ButtonColorAndOpacity_Lambda([this]()-> FLinearColor { return (FLinearColor(1.f, 1.f, 1.f, 1.f)); })
-					//FSlateColor(FLinearColor(1.f, 1.f, 1.f, Alpha))
+						SNew(SBox)
+						.HeightOverride(96)
+						[							
+								SAssignNew( GenerateGridButtonPtr, SButton )
+								//.Text( LOCTEXT( "Generate-New-Grid", "New Game." ) )
+								.OnClicked( FOnClicked::CreateRaw( this, &FEditorMineSweeperModule::OnGenerateGridClicked ) )
+								//.ButtonColorAndOpacity(this, &SPrimaryAssetIdGraphPin::OnGetWidgetBackground)
+								.ButtonColorAndOpacity_Lambda([this]()-> FLinearColor { return (FLinearColor(1.f, 1.f, 1.f, 1.f)); })
+								//FSlateColor(FLinearColor(1.f, 1.f, 1.f, Alpha))			
+								.HAlign( HAlign_Center ) .VAlign( VAlign_Center )
+								[
+									SNew( STextBlock )									
+									.Text( LOCTEXT( "Generate-New-Grid", "New Game." ) )
+									.Font( LargeLayoutFont )
+								]
 						]
 
 					]
 				+SScrollBox::Slot().Padding( 5 )
 					[
-						SNew( STextBlock ).ShadowOffset( HeadingShadowOffset ).Font( LargeLayoutFont ).Text( LOCTEXT( "Grid-Size", "Grid Size" ) )
+						SNew( STextBlock ).ShadowOffset( HeadingShadowOffset ).Font( LargeLayoutFont ).Text( LOCTEXT( "Properties", "Properties" ) )
 					]
 
 				+SScrollBox::Slot().Padding( 10, 5 )
@@ -214,7 +217,7 @@ TSharedRef<SDockTab> FEditorMineSweeperModule::MineSeeperUI()
 						SNew( SHorizontalBox )
 						+SHorizontalBox::Slot().FillWidth( 3 )
 							[
-								SNew( STextBlock ).Font( SmallLayoutFont ).Text( LOCTEXT( "NoOfMinesLable", "Number Of NumberOfMines :" ) )
+								SNew( STextBlock ).Font( SmallLayoutFont ).Text( LOCTEXT( "NoOfMinesLable", "Number Of Mines :" ) )
 							]
 						+SHorizontalBox::Slot().FillWidth( 3 )
 							[
@@ -270,17 +273,27 @@ TSharedRef<SDockTab> FEditorMineSweeperModule::MineSeeperUI()
 										.Text( LOCTEXT( "Game-Over", "Game Over" ) )											
 									]								
 								]
-								[
+								/*[
 									SNew(SBox) .HAlign( HAlign_Center ) .VAlign( VAlign_Center )
 									.Visibility_Lambda([this]()->EVisibility {return GameOver && DidWin ? EVisibility::Visible : EVisibility::Collapsed;})
 									[
 										SNew( STextBlock ).ShadowOffset( HeadingShadowOffset ).Font( XXLargeLayoutFont ).Text( LOCTEXT( "You-Win", "You Win!" ) )									
 									]
-								]
+								]*/
 								[
-									SNew( STextBlock ).ShadowOffset( HeadingShadowOffset ).Font( XXLargeLayoutFont ).Text( LOCTEXT( "You-Lose", "You Lose!" ) )
-									.Visibility_Lambda([this]()->EVisibility {return GameOver && !DidWin  ? EVisibility::Visible : EVisibility::Collapsed;})
+									SNew(SBox) .HAlign( HAlign_Center ) .VAlign( VAlign_Center )
+									.Visibility_Lambda([this]()->EVisibility {return GameOver? EVisibility::Visible : EVisibility::Collapsed;})
+									[
+									SNew( STextBlock ).ShadowOffset( HeadingShadowOffset ).Font( XXLargeLayoutFont )
+									.Text_Lambda([this]()->FText { return DidWin ?  LOCTEXT( "You-Win", "You Win!" ): LOCTEXT( "You-Lose", "You Lose!" );})
+									//.Text(DidWin ? LOCTEXT( "You-Win", "You Win!" ): LOCTEXT( "You-Lose", "You Lose!" ) )
+									.Visibility_Lambda([this]()->EVisibility {return GameOver  ? EVisibility::Visible : EVisibility::Collapsed;})
+									]
 								]
+								/*[
+									SNew( STextBlock ).ShadowOffset( HeadingShadowOffset ).Font( XXLargeLayoutFont ).Text( LOCTEXT( "You-Win", "You Win!" ) )
+									.Visibility_Lambda([this]()->EVisibility {return GameOver && DidWin  ? EVisibility::Visible : EVisibility::Collapsed;})
+								]*/
 							]
 						]
 					]
@@ -317,127 +330,127 @@ TSharedRef<SDockTab> FEditorMineSweeperModule::MineSeeperUI()
 						.FillHeight( 1 )
 							[							
 								SNew( SHorizontalBox )
-								RowButton(0)								
-								RowButton(1)								
-								RowButton(2)											
-								RowButton(3)											
-								RowButton(4)											
-								RowButton(5)								
-								RowButton(6)								
-								RowButton(7)								
-								RowButton(8)						
+								MineSweeperButton_Macro(0)								
+								MineSweeperButton_Macro(1)								
+								MineSweeperButton_Macro(2)											
+								MineSweeperButton_Macro(3)											
+								MineSweeperButton_Macro(4)											
+								MineSweeperButton_Macro(5)								
+								MineSweeperButton_Macro(6)								
+								MineSweeperButton_Macro(7)								
+								MineSweeperButton_Macro(8)						
 							]	
 						+SVerticalBox::Slot()
 						.FillHeight( 1 )
 							[							
 								SNew( SHorizontalBox )
-								RowButton(9)								
-								RowButton(10)								
-								RowButton(11)											
-								RowButton(12)											
-								RowButton(13)											
-								RowButton(14)								
-								RowButton(15)								
-								RowButton(16)								
-								RowButton(17)								
+								MineSweeperButton_Macro(9)								
+								MineSweeperButton_Macro(10)								
+								MineSweeperButton_Macro(11)											
+								MineSweeperButton_Macro(12)											
+								MineSweeperButton_Macro(13)											
+								MineSweeperButton_Macro(14)								
+								MineSweeperButton_Macro(15)								
+								MineSweeperButton_Macro(16)								
+								MineSweeperButton_Macro(17)								
 							]			
 						+SVerticalBox::Slot()
 						.FillHeight( 1 )
 							[							
 								SNew( SHorizontalBox )
-								RowButton(18)								
-								RowButton(19)								
-								RowButton(20)											
-								RowButton(21)											
-								RowButton(22)											
-								RowButton(23)								
-								RowButton(24)								
-								RowButton(25)								
-								RowButton(26)								
+								MineSweeperButton_Macro(18)								
+								MineSweeperButton_Macro(19)								
+								MineSweeperButton_Macro(20)											
+								MineSweeperButton_Macro(21)											
+								MineSweeperButton_Macro(22)											
+								MineSweeperButton_Macro(23)								
+								MineSweeperButton_Macro(24)								
+								MineSweeperButton_Macro(25)								
+								MineSweeperButton_Macro(26)								
 							]			
 						+SVerticalBox::Slot()
 						.FillHeight( 1 )
 							[							
 								SNew( SHorizontalBox )
-								RowButton(27)								
-								RowButton(28)								
-								RowButton(29)											
-								RowButton(30)											
-								RowButton(31)											
-								RowButton(32)								
-								RowButton(33)								
-								RowButton(34)								
-								RowButton(35)								
+								MineSweeperButton_Macro(27)								
+								MineSweeperButton_Macro(28)								
+								MineSweeperButton_Macro(29)											
+								MineSweeperButton_Macro(30)											
+								MineSweeperButton_Macro(31)											
+								MineSweeperButton_Macro(32)								
+								MineSweeperButton_Macro(33)								
+								MineSweeperButton_Macro(34)								
+								MineSweeperButton_Macro(35)								
 							]
 						+SVerticalBox::Slot()
 						.FillHeight( 1 )
 							[							
 								SNew( SHorizontalBox )
-								RowButton(36)								
-								RowButton(37)								
-								RowButton(38)											
-								RowButton(39)											
-								RowButton(40)											
-								RowButton(41)								
-								RowButton(42)								
-								RowButton(43)								
-								RowButton(44)								
+								MineSweeperButton_Macro(36)								
+								MineSweeperButton_Macro(37)								
+								MineSweeperButton_Macro(38)											
+								MineSweeperButton_Macro(39)											
+								MineSweeperButton_Macro(40)											
+								MineSweeperButton_Macro(41)								
+								MineSweeperButton_Macro(42)								
+								MineSweeperButton_Macro(43)								
+								MineSweeperButton_Macro(44)								
 							]			
 						+SVerticalBox::Slot()
 						.FillHeight( 1 )
 							[							
 								SNew( SHorizontalBox )
-								RowButton(45)								
-								RowButton(46)								
-								RowButton(47)											
-								RowButton(48)											
-								RowButton(49)											
-								RowButton(50)								
-								RowButton(51)								
-								RowButton(52)								
-								RowButton(53)								
+								MineSweeperButton_Macro(45)								
+								MineSweeperButton_Macro(46)								
+								MineSweeperButton_Macro(47)											
+								MineSweeperButton_Macro(48)											
+								MineSweeperButton_Macro(49)											
+								MineSweeperButton_Macro(50)								
+								MineSweeperButton_Macro(51)								
+								MineSweeperButton_Macro(52)								
+								MineSweeperButton_Macro(53)								
 							]		
 						+SVerticalBox::Slot()
 						.FillHeight( 1 )
 							[							
 								SNew( SHorizontalBox )
-								RowButton(54)								
-								RowButton(55)								
-								RowButton(56)											
-								RowButton(57)											
-								RowButton(58)											
-								RowButton(59)								
-								RowButton(60)								
-								RowButton(61)								
-								RowButton(62)								
+								MineSweeperButton_Macro(54)								
+								MineSweeperButton_Macro(55)								
+								MineSweeperButton_Macro(56)											
+								MineSweeperButton_Macro(57)											
+								MineSweeperButton_Macro(58)											
+								MineSweeperButton_Macro(59)								
+								MineSweeperButton_Macro(60)								
+								MineSweeperButton_Macro(61)								
+								MineSweeperButton_Macro(62)								
 							]			
 						+SVerticalBox::Slot()
 						.FillHeight( 1 )
 							[							
 								SNew( SHorizontalBox )
-								RowButton(63)								
-								RowButton(64)								
-								RowButton(65)											
-								RowButton(66)											
-								RowButton(67)											
-								RowButton(68)								
-								RowButton(69)								
-								RowButton(70)								
-								RowButton(71)								
+								MineSweeperButton_Macro(63)								
+								MineSweeperButton_Macro(64)								
+								MineSweeperButton_Macro(65)											
+								MineSweeperButton_Macro(66)											
+								MineSweeperButton_Macro(67)											
+								MineSweeperButton_Macro(68)								
+								MineSweeperButton_Macro(69)								
+								MineSweeperButton_Macro(70)								
+								MineSweeperButton_Macro(71)								
 							]			
 						+SVerticalBox::Slot()
 						.FillHeight( 1 )
 							[							
 								SNew( SHorizontalBox )
-								RowButton(72)								
-								RowButton(73)								
-								RowButton(74)											
-								RowButton(75)											
-								RowButton(76)											
-								RowButton(77)								
-								RowButton(78)								
-								RowButton(79)								
-								RowButton(80)								
+								MineSweeperButton_Macro(72)								
+								MineSweeperButton_Macro(73)								
+								MineSweeperButton_Macro(74)											
+								MineSweeperButton_Macro(75)											
+								MineSweeperButton_Macro(76)											
+								MineSweeperButton_Macro(77)								
+								MineSweeperButton_Macro(78)								
+								MineSweeperButton_Macro(79)								
+								MineSweeperButton_Macro(80)								
 							]											
 						]
 					]				
@@ -447,13 +460,6 @@ TSharedRef<SDockTab> FEditorMineSweeperModule::MineSeeperUI()
 	return UI;
 }
 
-void FEditorMineSweeperModule::ResetValues()
-{
-	GameOver=false;
-	DidWin=false;
-	Score = 0;
-}
-
 FReply FEditorMineSweeperModule::OnGenerateGridClicked()
 {
 	ResetValues();
@@ -461,9 +467,9 @@ FReply FEditorMineSweeperModule::OnGenerateGridClicked()
 	NumberOfMines=NumberOfMinesTextBoxPtr->GetValue();
 	InitialzeGrid();
 	//Remove this after viewing the table
-	/*for( int32 i = 0; i < real_table.Num(); i++ )
+	/*for( int32 i = 0; i < Actual_Table.Num(); i++ )
 	{
-		vis_table[i]=real_table[i];
+		Visible_Table[i]=Actual_Table[i];
 	}*/
 	
 	FString outStr = "GridSize is " +FString::SanitizeFloat( WidthTextBoxPtr->GetValue() );
@@ -472,7 +478,7 @@ FReply FEditorMineSweeperModule::OnGenerateGridClicked()
 	//FMessageDialog::Open( EAppMsgType::Ok, FText::FromString( TEXT( "SUCCESFULLY GENERATED GRID DATA" ) ) );
 	//MineSeeperUI();
 	showMineField=true;
-	safe = GridSize*GridSize - NumberOfMines-1;
+	safe = GridSize*GridSize - NumberOfMines;
 	GameOver=false;
 	DidWin=false;
 	return FReply::Handled();
@@ -484,10 +490,10 @@ FReply FEditorMineSweeperModule::OnMineFieldButtonClicked( int32 i )
 	FString outStr = "Clicked on " +FString::FromInt( index );
 	MineLog( LogMain, Warning, outStr );
 	//FMessageDialog::Open( EAppMsgType::Ok, FText::FromString(outStr) );
-	if ( vis_table[index].Equals("-"))
+	if ( Visible_Table[index].Equals("-"))
 	{
-		curr_symbol = real_table[index];
-		vis_table[index] = curr_symbol;
+		curr_symbol = Actual_Table[index];
+		Visible_Table[index] = curr_symbol;
 		if ( curr_symbol.Equals(" "))
 		{
 			openSafe ( GridSize, index );
@@ -500,22 +506,45 @@ FReply FEditorMineSweeperModule::OnMineFieldButtonClicked( int32 i )
 			
 			if ( Score == safe )
 			{
-				GameOver=true;
 				DidWin=true;
+				GameOver=true;
+				
 			}
 		}
 		if ( curr_symbol.Equals("*"))
 		{
-			GameOver=true;
 			DidWin=false;
-			for( int32 i = 0; i < real_table.Num(); i++ )
+			GameOver=true;
+			
+			for( int32 i = 0; i < Actual_Table.Num(); i++ )
 			{
-				vis_table[i]=real_table[i];
+				Visible_Table[i]=Actual_Table[i];
 			}			
 		}
 	}
 	
 	return FReply::Handled();
+}
+
+
+#pragma endregion Plugin_MineSweeper_UI
+
+
+#pragma region Plugin_MINESWEEPER_LOGIC
+
+void FEditorMineSweeperModule::InitialzeGrid()
+{
+	Actual_Table.Init("-",GridSize*GridSize);
+	Visible_Table.Init("-",GridSize*GridSize);
+	placeMines();
+	calculateNumbers ();
+}
+
+void FEditorMineSweeperModule::ResetValues()
+{
+	GameOver=false;
+	DidWin=false;
+	Score = 0;
 }
 
 void FEditorMineSweeperModule::openSafe (  int32 n, int32 pos )
@@ -527,11 +556,11 @@ void FEditorMineSweeperModule::openSafe (  int32 n, int32 pos )
 	{ 
 		if ( isRealNeighbor ( i, pos, n ) )
 		{
-			if ( vis_table[neighbors[i]].Equals("-") )
+			if ( Visible_Table[neighbors[i]].Equals("-") )
 			{
-				vis_table[neighbors[i]] = real_table[neighbors[i]];
+				Visible_Table[neighbors[i]] = Actual_Table[neighbors[i]];
 				Score++;
-				if ( vis_table[neighbors[i]].Equals(" "))
+				if ( Visible_Table[neighbors[i]].Equals(" "))
 				{
 					openSafe ( n, neighbors[i] );
 				}
@@ -541,33 +570,19 @@ void FEditorMineSweeperModule::openSafe (  int32 n, int32 pos )
 	return;
 }
 
-
-#pragma endregion Plugin_MineSweeper_UI
-
-
-#pragma region Plugin_MINESWEEPER_LOGIC
-
-void FEditorMineSweeperModule::InitialzeGrid()
-{
-	real_table.Init("-",GridSize*GridSize);
-	vis_table.Init("-",GridSize*GridSize);
-	placeMines();
-	calculateNumbers ();
-}
-
 FText FEditorMineSweeperModule::GetTableValueAt(int32 i)
 {
 	/*int32 index= i-((9-GridSize) * FMath::Floor(i/9) );
 	FString outStr = "Clicked on " +FString::FromInt( index );
 	MineLog( LogMain, Warning, outStr );*/
 	FText val;
-	if( vis_table.Num()>0 )
+	if( Visible_Table.Num()>0 )
 	{
-		if( vis_table.IsValidIndex(i) )
+		if( Visible_Table.IsValidIndex(i) )
 		{		
-			if(!vis_table[i].IsEmpty())
+			if(!Visible_Table[i].IsEmpty())
 			{		
-				val=FText::FromString(FString(vis_table[i]));
+				val=FText::FromString(FString(Visible_Table[i]));
 				//val=FText::FromString(FString("G"));
 			}
 			else
@@ -594,9 +609,9 @@ void FEditorMineSweeperModule::placeMines()
 	while ( num_mines < NumberOfMines )
 	{
 		mine =FMath::RandRange(0,(GridSize * GridSize)-1);	
-		if ( !real_table[mine].Equals("*") )
+		if ( !Actual_Table[mine].Equals("*") )
 		{
-			real_table[mine] = "*";
+			Actual_Table[mine] = "*";
 			num_mines++;
 		}
 	}
@@ -611,10 +626,10 @@ void FEditorMineSweeperModule::calculateNumbers()
 	//int32 neighbors[GridSize]; 
 	for ( int32 i = 0; i < (GridSize * GridSize); i++ )
 	{
-		if ( !real_table[i].Equals("*"))
+		if ( !Actual_Table[i].Equals("*"))
 		{ 
 			neighbors = getneighbors( i, GridSize);
-			real_table[i] = countMines ( neighbors, i,  GridSize  );		
+			Actual_Table[i] = countMines ( neighbors, i,  GridSize  );		
 		}
 	}
 	return;
@@ -677,7 +692,7 @@ FString FEditorMineSweeperModule::countMines (TArray<int32> neighbors, int32 pos
 		bool isRH=isRealNeighbor( i, pos, n );	
 		if ( isRH )
 		{			
-			if ( real_table[neighbors[i]].Equals("*"))
+			if ( Actual_Table[neighbors[i]].Equals("*"))
 			{
 				mines++;
 			}
@@ -701,7 +716,7 @@ FString FEditorMineSweeperModule::countMines (TArray<int32> neighbors, int32 pos
 
 
 #pragma region Plugin_TRASH
-
+/* Unused Stuff*/
 void FEditorMineSweeperModule::StoreWidthValue( float NewValue )
 {
 	FString outStr = "GridSize is " +FString::SanitizeFloat( NewValue);
@@ -709,7 +724,7 @@ void FEditorMineSweeperModule::StoreWidthValue( float NewValue )
 	GridSize = NewValue;
 }
 
-//SHorizontalBox FEditorMineSweeperModule::RowButton()
+//SHorizontalBox FEditorMineSweeperModule::MineSweeperButton_Macro()
 //{
 //	//TSharedRef<SVerticalBox> VB=	SNew( SVerticalBox );
 //	
